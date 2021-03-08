@@ -1,0 +1,48 @@
+/** Symmetric Min Max Heap **/
+class SymMinMax{
+
+};
+
+
+
+class binoHeap: public Heap{
+private:
+    vector<Node> Bvec;
+public:
+
+};
+
+class FiboHeap: public Heap{
+private:
+    vector<Node> Fibo;
+public:
+
+
+};
+
+class Treap: public Heap{
+
+};
+
+/** Bi-PARENTAL HEAP **/
+class Beap{
+
+};
+
+class B-heap{
+};
+
+class d-heap{
+};
+
+class WeakHeap{
+
+};
+
+class Pairing{
+
+};
+
+class Leftist{
+
+};
