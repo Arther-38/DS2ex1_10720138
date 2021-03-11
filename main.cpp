@@ -10,6 +10,7 @@
 #include <ctime>
 #include <time.h>
 #include <math.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -17,222 +18,234 @@ typedef struct HeapNode
 {
 
     string schNum,schName,majorNum,majorName,genre,DayNight,Edu,City;
-    int sNum,tNum,gradu;
+    int sNum,tNum,gradu,Seq;
 
-    HeapNode():schNum(""),schName(""),majorNum(""),majorName(""),genre(""),DayNight(""),Edu(""),City(""),sNum(-1),tNum(-1),gradu(-1) {};
+    HeapNode():schNum(""),schName(""),majorNum(""),majorName(""),genre(""),DayNight(""),Edu(""),City(""),sNum(-1),tNum(-1),gradu(-1),Seq(-1) {};
 
     HeapNode(string a,string b,string c,string d,string e,string f,
-             string g,string h,int i,int j,int k):schNum(a),schName(b),majorNum(c),majorName(d)
-        ,genre(e),DayNight(f),Edu(g),City(h),sNum(i),tNum(j),gradu(k) {};
+             string g,string h,int i,int j,int k,int l):schNum(a),schName(b),majorNum(c),majorName(d)
+        ,genre(e),DayNight(f),Edu(g),City(h),sNum(i),tNum(j),gradu(k),Seq(l) {};
 
 } Node;
 
+vector<string> vecSrc;
+vector<string> vecSplit;
+vector<Node> temp;
 /** Note
 
 Apply array-based data structure to implement Heap
 
 Fundamental Heap-related data structures implementation
 
-Project list:
+Project list:(list by Sequence)
 ------------------
-Max/Mini Heap (f)
-MinMaxHeap
-Double-ended Priority Queue (Deap)(f)
+Readfile
+
+Max Heap:
+func: insert one by one (f)
+      delete
+
+MinMaxHeap:
+func: insert one by one (f)
+      delete
+
+Double-ended Priority Queue (Deap):
+func: insert one by one (f)
+      delete
+
 binomial heap
+
 Fibonacci Heap
+
+main
 
 **/
 
+int Left(int i)
+{
+    return (2*i+1);
+}
+
+int Right(int i)
+{
+    return (2*i+2);
+}
+
+int Parent(int i)
+{
+    return (i-1)/2;
+}
+
+int grandParent(int i)
+{
+    return (i+1)/4-1;
+}
+
+int Floor(int cur)
+{
+    int f=log2(cur+1)+1;
+    return f;
+}
+
+int Size(vector<Node> &vec)
+{
+    return vec.size();
+}
+
+int bottom(vector<Node> &vec)
+{
+    return vec.size()-1;
+}
+
+int leftmost(vector<Node> &vec)
+{
+    int i=0;
+    while(((int)pow(2,i)) < Size(vec)+1)
+    {
+        i++;
+    }
+    return (int)pow(2,i-1)-1;
+
+}
+
+int my_split(const string& src, const char& delim,
+             vector<string>& vec)
+{
+    int src_len = src.length();
+    int find_cursor = 0;
+    int read_cursor = 0;
+
+    if (src_len <= 0)
+        return -1;
+
+    vec.clear();
+
+    while (read_cursor < src_len)
+    {
+
+        find_cursor = src.find(delim, find_cursor);
+
+        if (-1 == find_cursor)
+        {
+            if (read_cursor <= 0)
+                return -1;
+
+            if (read_cursor < src_len)
+            {
+                vec.push_back(src.substr(read_cursor, src_len - read_cursor));
+                return 0;
+            }
+        }
+
+        else if (find_cursor == read_cursor &&(read_cursor!=0))
+            vec.push_back(string(""));
+
+        else
+            vec.push_back(src.substr(read_cursor, find_cursor - read_cursor));
+
+        read_cursor = ++find_cursor;
+
+        if (read_cursor == src_len)
+        {
+
+            vec.push_back(string(""));
+            return 0;
+        }
+    }//end while()
+}
+
+bool readfile(string filename)
+{
+    filename="input"+filename+".txt";
+    cout<<filename<<endl;
+    ifstream fin(filename.c_str());
+
+    if(!fin){
+        cout<<"read file failed!\n\n";
+        return false;
+    }
+    string s;
+
+    if(fin)
+    {
+        int count=1;
+
+        for(int i=0; i<2; i++)
+            getline(fin,s);
+
+        while(getline(fin,s))
+        {
+            //title=s;
+            break;
+        }
+
+        while(getline(fin,s))
+        {
+            vecSrc.push_back(s);
+
+            for (string src : vecSrc)
+            {
+                Node arr;
+                vecSplit.clear();
+
+                int iRet = my_split(src, '\t', vecSplit);
+
+                arr.schNum=vecSplit[0];
+
+                arr.schName=vecSplit[1];
+
+                arr.majorNum=vecSplit[2];
+
+                arr.majorName=vecSplit[3];
+
+                arr.DayNight=vecSplit[4];
+
+                arr.Edu=vecSplit[5];
+
+                vecSplit[6].erase(remove(vecSplit[6].begin(), vecSplit[6].end(), '"'), vecSplit[6].end());
+                vecSplit[6].erase(remove(vecSplit[6].begin(), vecSplit[6].end(), ','), vecSplit[6].end());
+                arr.sNum=atoi(vecSplit[6].c_str());
+
+                vecSplit[7].erase(remove(vecSplit[7].begin(), vecSplit[6].end(), '"'), vecSplit[7].end());
+                vecSplit[7].erase(remove(vecSplit[7].begin(), vecSplit[6].end(), ','), vecSplit[7].end());
+                arr.tNum=atoi(vecSplit[7].c_str());
+
+                vecSplit[8].erase(remove(vecSplit[8].begin(), vecSplit[8].end(), '"'), vecSplit[8].end());
+                vecSplit[8].erase(remove(vecSplit[8].begin(), vecSplit[8].end(), ','), vecSplit[8].end());
+                arr.gradu=atoi(vecSplit[8].c_str());
+
+                arr.City=vecSplit[9];
+
+                arr.genre=vecSplit[10];
+
+                arr.Seq=count;
+                count++;
+
+                temp.push_back(arr);
+            }
+            vecSrc.clear();
+        }
+        count=0;
+    }
+return true;
+}
+
+/******************************************** MaxHeap *****************************************************/
 class MaxHeap
 {
 private:
     vector<Node> Maxvec ;
 public:
 
-    bool readfile(string filename)
-    {
-        filename="input"+filename+".txt";
-        cout<<filename<<endl;
-        ifstream fin(filename.c_str());
-        if(!fin)
-        {
-            cout<<"read file failed!\n\n";
-            return false;
-        }
-
-        const char *sep="\t";
-
-        string s;
-
-        if(fin)
-        {
-            int count=0;
-
-            for(int i=0; i<2; i++)
-                getline(fin,s);
-
-            while(getline(fin,s))
-            {
-                title=s;
-                break;
-            }
-
-            while(getline(fin,s))
-            {
-                int count=0;
-                Node arr;
-                char* line;
-                int len = s.length();
-                line=new char [len+1];
-                strcpy(line,s.c_str());
-
-                char *p;
-                p=strtok(line,sep);
-
-                while(p)
-                {
-                    stringstream myStreamString;
-                    myStreamString << p;
-                    p=strtok(NULL,sep);
-                    string myString = myStreamString.str();
-                    //cout << myString << endl;
-
-                    if(count>10)
-                        count=0;
-
-                    if(count == 0)
-                        arr.schNum=myString;
-                    else if(count == 1)
-                        arr.schName=myString;
-                    else if(count == 2)
-                        arr.majorNum=myString;
-                    else if(count == 3)
-                        arr.majorName=myString;
-                    else if(count == 4)
-                        arr.DayNight=myString;
-                    else if(count == 5)
-                        arr.Edu=myString;
-                    else if(count == 6)
-                        arr.sNum=atoi(myString.c_str());
-                    else if(count == 7)
-                        arr.tNum=atoi(myString.c_str());
-                    else if(count == 8)
-                        arr.gradu=atoi(myString.c_str());
-                    else if(count == 9)
-                        arr.City=myString;
-                    else if(count == 10)
-                        arr.genre=myString;
-
-                    if(count==10)
-                    {
-                        Maxvec.push_back(arr);
-                        adjust_up(bottom());
-                    }
-
-                    count++;
-
-                    /* vec[row].insert(vec.end(),p,p+strlen(p));
-                     vec.insert(vec.end(),'a');*/
-                }
-
-                delete [] line;
-            }
-
-        }
-        return true;
-    }
-
     MaxHeap() {}
 
     string title;
-
-    int Left(int i)
-    {
-        return (2*i+1);
-    }
-
-    int Right(int i)
-    {
-        return (2*i+2);
-    }
-
-    int Parent(int i)
-    {
-        return (i-1)/2;
-    }
-
-    int Size()
-    {
-        return Maxvec.size();
-    }
-
-    /*void deletef()
-    {
-        string num;
-        int cur=atoi(searchf(num));
-        Assign(Maxvec[cur],Maxvec[bottom]);
-        Maxvec[bottom--]=0;
-        if(bottom > 1){
-            if(Maxvec[cur].gradu > Maxvec[Parent(cur)].gradu && cur>1)
-                adjust_up(cur);
-            else
-                adjust_down(cur);
-        }
-
-    }//end delete
-
-    int searchf(string num){
-
-        int flag=0; // find init
-        for(int i=0;i<Size()-1;i++){
-            if(Maxvec[i].gradu==atoi(num))
-            {
-                flag=1;
-                  break;
-            }
-        }
-
-        if(flag==1)
-            return i;
-        else{
-            cout<<"Data not found!!\n";
-            return -1;
-        }
-    }//end search
-
-    void modify(){
-
-        string data;
-        cout<<"Input data to modify: ";
-        cin>>data;
-
-        if(searchf(data)!=-1)
-        {
-            if(isMaxhp)
-            int cur = searchf(data);
-
-            Maxvec[cur].gradu=atoi(data);
-            if(Maxvec[cur].gradu > Maxvec[Parent(cur)].gradu && cur>1)
-                adjust_up(cur);
-            else
-                adjust_down(cur);
-        }
-
-    }
-
-    bool isMaxhp(){
-
-    }
-
-    void adjust_down(){
-
-    }*/
 
     void adjust_up(int cur)
     {
         while(cur>0)
         {
-            if(Maxvec[cur].sNum <= Maxvec[Parent(cur)].sNum)
+            if(Maxvec[cur].sNum < Maxvec[Parent(cur)].sNum)
                 break;
             else
                 swap(Maxvec[cur],Maxvec[Parent(cur)]);
@@ -240,416 +253,219 @@ public:
         }
     }
 
-    int leftmost()
+    void MaxHeapify()
     {
-        int i=0;
-        while(((int)pow(2,i)) < Size()+1)
+        for(int i=0; i<temp.size(); i++)
         {
-            i++;
+            Maxvec.push_back(temp[i]);
+            adjust_up(bottom(Maxvec));
         }
-        return (int)pow(2,i-1)-1;
-
+        temp.clear();
     }
 
-    int bottom()      //rightmost
+    /*void deletef()
+     {
+         string num;
+         //int cur=searchf(num);
+         vecAssign(Maxvec[cur],Maxvec[bottom]);
+         Maxvec.pop_back();
+         if(bottom > 1){
+             if(Maxvec[cur].sNum > Maxvec[Parent(cur)].sNum && cur>1)
+                 adjust_up(cur);
+             else
+                 adjust_down(cur);
+         }
+
+     }//end delete
+
+     int searchf(string num){
+
+         int flag=0; // find init
+         for(int i=0;i<Size(Maxvec)-1;i++){
+             if(Maxvec[i].sNum==atoi(num))
+             {
+                 flag=1;
+                   break;
+             }
+         }
+
+         if(flag==1)
+             return i;
+         else{
+             cout<<"Data not found!!\n";
+             return -1;
+         }
+     }//end search
+
+     bool isMaxhp(){
+
+     }
+
+     void adjust_down(){
+
+         while(cur<=bottom(Maxvec))
+         {
+             if((cur < bottom(Maxvec))&& (Maxvec[cur] <Maxvec[cur+1]))
+                 cur++;
+             if(>=Maxvec[cur])
+                 break;
+             else{
+                 Max
+             }
+         }
+     }*/
+
+    void Clear()
     {
-        return Maxvec.size()-1;
+        Maxvec.clear();
     }
 
     void ShowHeap()
     {
-        for(int i=0; i<Maxvec.size(); i++)
-            cout<<Maxvec[i].sNum<<"\t";
-
-        cout<<"\nLeftmost index= "<<leftmost()<<endl;
-        cout<<"leftmost= "<< Maxvec[leftmost()].sNum <<endl;
-        cout<<"bottom= "<< Maxvec[bottom()].sNum <<endl;;
+        /*for(int i=0; i<Maxvec.size(); i++)
+            cout<<Maxvec[i].sNum<<"\t";*/
+        cout<<"\n <Max Heap>"<<endl;
+        cout<<"Data Size= "<<Size(Maxvec)<<endl;
+        cout<<"\nRoot= "<<"["<<Maxvec[0].Seq<<"] "<<Maxvec[0].sNum<<endl;
+        cout<<"bottom= "<<"["<<Maxvec[bottom(Maxvec)].Seq <<"] "<<Maxvec[bottom(Maxvec)].sNum <<endl;
+        cout<<"leftmost= "<< "[" << Maxvec[leftmost(Maxvec)].Seq <<"] "<< Maxvec[leftmost(Maxvec)].sNum <<endl;
+        Maxvec.clear();
         cout<<endl;
     }
 
 }; ///End class MaxHeap
 
-/*class MinHeap
-{
-private:
-    vector<Node> Minvec;
-
-public:
-
-    bool readfile(string filename)
-    {
-        filename="input"+filename+".txt";
-        cout<<filename<<endl;
-        ifstream fin(filename.c_str());
-        if(!fin)
-        {
-            cout<<"read file failed!\n\n";
-            return false;
-        }
-
-        const char *sep="\t";
-
-        string s;
-
-        if(fin)
-        {
-            int count=0;
-
-            for(int i=0; i<2; i++)
-                getline(fin,s);
-
-            while(getline(fin,s))
-            {
-                title=s;
-                break;
-            }
-
-            while(getline(fin,s))
-            {
-                int count=0;
-                Node arr;
-                char* line;
-                int len = s.length();
-                line=new char [len+1];
-                strcpy(line,s.c_str());
-
-                char *p;
-                p=strtok(line,sep);
-
-                while(p)
-                {
-                    stringstream myStreamString;
-                    myStreamString << p;
-                    p=strtok(NULL,sep);
-                    string myString = myStreamString.str();
-                    //cout << myString << endl;
-
-                    if(count>10)
-                        count=0;
-
-                    if(count == 0)
-                        arr.schNum=myString;
-                    else if(count == 1)
-                        arr.schName=myString;
-                    else if(count == 2)
-                        arr.majorNum=myString;
-                    else if(count == 3)
-                        arr.majorName=myString;
-                    else if(count == 4)
-                        arr.DayNight=myString;
-                    else if(count == 5)
-                        arr.Edu=myString;
-                    else if(count == 6)
-                        arr.sNum=atoi(myString.c_str());
-                    else if(count == 7)
-                        arr.tNum=atoi(myString.c_str());
-                    else if(count == 8)
-                        arr.gradu=atoi(myString.c_str());
-                    else if(count == 9)
-                        arr.City=myString;
-                    else if(count == 10)
-                        arr.genre=myString;
-
-                    if(count==10)
-                    {
-                        Minvec.push_back(arr);
-                        adjust_up(bottom());
-                    }
-
-                    count++;
-
-                }
-
-                delete [] line;
-            }
-
-        }
-        return true;
-    }
-
-    MinHeap() {}
-
-    string title;
-
-    int Left(int i)
-    {
-        return (2*i+1);
-    }
-
-    int Right(int i)
-    {
-        return (2*i+2);
-    }
-
-    int Parent(int i)
-    {
-        return (i-1)/2;
-    }
-
-    int Size()
-    {
-        return Minvec.size();
-    }
-
-    void adjust_up(int cur)
-    {
-        while(cur>0)
-        {
-            if(Minvec[cur].sNum >= Minvec[Parent(cur)].sNum)
-                break;
-            else
-                swap(Minvec[cur],Minvec[Parent(cur)]);
-            cur=Parent(cur);
-        }
-    }
-
-    int leftmost()
-    {
-        int i=0;
-        while(((int)pow(2,i)) < Size()+1)
-        {
-            i++;
-        }
-        return (int)pow(2,i-1)-1;
-
-    }
-
-    int bottom()      //rightmost
-    {
-        return Minvec.size()-1;
-    }
-
-    void ShowHeap()
-    {
-        for(int i=0; i<Maxvec.size(); i++)
-            cout<<Maxvec[i].sNum<<"\t";
-
-        cout<<"\nLeftmost index= "<<leftmost()<<endl;
-        cout<<"leftmost= "<< Minvec[leftmost()].sNum <<endl;
-        cout<<"bottom= "<< Maxvec[bottom()].sNum <<endl;;
-        cout<<endl;
-    }
-};///End class MinHeap
 //void Huffman(){};
-
+/******************************************** MinMaxHeap *****************************************************/
 class MMHeap
 {
 private:
     vector<Node> MMvec;
 public:
 
-    bool readfile(string filename)
+    void MMHeapify()
     {
-        filename="input"+filename+".txt";
-        cout<<filename<<endl;
-        ifstream fin(filename.c_str());
-        if(!fin)
+        for(int i=0; i<temp.size(); i++)
         {
-            cout<<"read file failed!\n\n";
-            return false;
+            MMvec.push_back(temp[i]);
+            BubbleUp(bottom(MMvec));
         }
-
-        const char *sep="\t";
-
-        string s;
-
-        if(fin)
-        {
-            int count=0;
-
-            for(int i=0; i<2; i++)
-                getline(fin,s);
-
-            while(getline(fin,s))
-            {
-                title=s;
-                break;
-            }
-
-            while(getline(fin,s))
-            {
-                int count=0;
-                Node arr;
-                char* line;
-                int len = s.length();
-                line=new char [len+1];
-                strcpy(line,s.c_str());
-
-                char *p;
-                p=strtok(line,sep);
-
-                while(p)
-                {
-                    stringstream myStreamString;
-                    myStreamString << p;
-                    p=strtok(NULL,sep);
-                    string myString = myStreamString.str();
-                    //cout << myString << endl;
-
-                    if(count>10)
-                        count=0;
-
-                    if(count == 0)
-                        arr.schNum=myString;
-                    else if(count == 1)
-                        arr.schName=myString;
-                    else if(count == 2)
-                        arr.majorNum=myString;
-                    else if(count == 3)
-                        arr.majorName=myString;
-                    else if(count == 4)
-                        arr.DayNight=myString;
-                    else if(count == 5)
-                        arr.Edu=myString;
-                    else if(count == 6)
-                        arr.sNum=atoi(myString.c_str());
-                    else if(count == 7)
-                        arr.tNum=atoi(myString.c_str());
-                    else if(count == 8)
-                        arr.gradu=atoi(myString.c_str());
-                    else if(count == 9)
-                        arr.City=myString;
-                    else if(count == 10)
-                        arr.genre=myString;
-
-                    if(count==10)
-                    {
-                        MMvec.push_back(arr);
-                        Heapify(bottom);
-                    }
-
-                    count++;
-
-                }
-
-                delete [] line;
-            }
-
-        }
-        return true;
+        temp.clear();
     }
 
     MMHeap() {}
 
+    string title;
 
+    bool is_min_level(int cur)
+    {
+        if(Floor(cur)%2 == 1)
+            return true;
+        return false;
+    }
 
-};*/
+    void BubbleUp(int cur)
+    {
+        if(is_min_level(cur))
+        {
+            if(MMvec[Parent(cur)].sNum < MMvec[cur].sNum)
+            {
+                swap(MMvec[Parent(cur)],MMvec[cur]);
+                BubbleUpMax(Parent(cur));
+            }
+            else
+            {
+                BubbleUpMin(cur);
+            }
+        }
 
+        else
+        {
+            if(MMvec[Parent(cur)].sNum > MMvec[cur].sNum)
+            {
+                swap(MMvec[Parent(cur)],MMvec[cur]);
+                BubbleUpMin(Parent(cur));
+            }
+            else
+            {
+                BubbleUpMax(cur);
+            }
+        }
+    }
+
+    void BubbleUpMin(int cur)
+    {
+        while(cur>2)
+        {
+            if(MMvec[grandParent(cur)].sNum>MMvec[cur].sNum)
+            {
+                swap(MMvec[grandParent(cur)],MMvec[cur]);
+                cur=grandParent(cur);
+            }
+            else
+                break;
+        }
+    }
+
+    void BubbleUpMax(int cur)
+    {
+        while(cur>2)
+        {
+            if(MMvec[grandParent(cur)].sNum<MMvec[cur].sNum)
+            {
+                swap(MMvec[grandParent(cur)],MMvec[cur]);
+                cur=grandParent(cur);
+            }
+            else
+                break;
+        }
+    }
+
+    void Clear()
+    {
+        MMvec.clear();
+    }
+
+    void ShowHeap()
+    {
+        /*for(int i=1; i<Dvec.size(); i++)
+        {
+            cout<<Dvec[i].sNum<<"\t";
+            if(Floor(i+1) != Floor(i))
+                cout<<"\n";
+        }*/
+        cout<<"\n <MinMaxHeap> "<<endl;
+        cout<<"Data Size= "<<Size(MMvec)<<endl;
+        cout<<"\nRoot= "<<"["<<MMvec[0].Seq<<"] "<<MMvec[0].sNum<<endl;
+        cout<<"bottom= "<<"["<<MMvec[bottom(MMvec)].Seq <<"] "<<MMvec[bottom(MMvec)].sNum <<endl;
+        cout<<"leftmost= "<< "[" << MMvec[leftmost(MMvec)].Seq <<"] "<< MMvec[leftmost(MMvec)].sNum <<endl;
+        MMvec.clear();
+        cout<<endl;
+    }
+
+};///End MinMaxHeap
+
+/************************************************************* Deap *********************************************************/
 class Deap
 {
 private:
     vector<Node> Dvec;
 public:
-    bool readfile(string filename)
+
+    void Deapify()
     {
         Dvec.push_back(Node());
-        cout<<"Dvec0= "<<Dvec[0].sNum<<endl;
-        filename="input"+filename+".txt";
-        cout<<filename<<endl;
-        ifstream fin(filename.c_str());
-        if(!fin)
+        for(int i=0; i<temp.size(); i++)
         {
-            cout<<"read file failed!\n\n";
-            return false;
+            Dvec.push_back(temp[i]);
+            Heapify();
         }
-
-        const char *sep="\t";
-
-        string s;
-
-        if(fin)
-        {
-            int count=0;
-
-            for(int i=0; i<2; i++)
-                getline(fin,s);
-
-            while(getline(fin,s))
-            {
-                title=s;
-                break;
-            }
-
-            while(getline(fin,s))
-            {
-                int count=0;
-                Node arr;
-                char* line;
-                int len = s.length();
-                line=new char [len+1];
-                strcpy(line,s.c_str());
-
-                char *p;
-                p=strtok(line,sep);
-
-                while(p)
-                {
-                    stringstream myStreamString;
-                    myStreamString << p;
-                    p=strtok(NULL,sep);
-                    string myString = myStreamString.str();
-                    //cout << myString << endl;
-
-                    if(count>10)
-                        count=0;
-
-                    if(count == 0)
-                        arr.schNum=myString;
-                    else if(count == 1)
-                        arr.schName=myString;
-                    else if(count == 2)
-                        arr.majorNum=myString;
-                    else if(count == 3)
-                        arr.majorName=myString;
-                    else if(count == 4)
-                        arr.DayNight=myString;
-                    else if(count == 5)
-                        arr.Edu=myString;
-                    else if(count == 6)
-                        arr.sNum=atoi(myString.c_str());
-                    else if(count == 7)
-                        arr.tNum=atoi(myString.c_str());
-                    else if(count == 8)
-                        arr.gradu=atoi(myString.c_str());
-                    else if(count == 9)
-                        arr.City=myString;
-                    else if(count == 10)
-                        arr.genre=myString;
-
-                    if(count==10)
-                    {
-                        Dvec.push_back(arr);
-                        Heapify();
-                    }
-
-                    count++;
-                }
-
-                delete [] line;
-            }
-
-        }
-        return true;
+        temp.clear();
     }
 
     Deap() {}
 
     string title;
-
-    int Left(int i)
-    {
-        return (2*i+1);
-    }
-
-    int Right(int i)
-    {
-        return (2*i+2);
-    }
-
-    int Parent(int i)
-    {
-        return (i-1)/2;
-    }
 
     int MinRoot()
     {
@@ -661,27 +477,11 @@ public:
         return 2;
     }
 
-    int Size()
-    {
-        return Dvec.size();
-    }
-
-    int bottom()      //rightmost
-    {
-        return Dvec.size()-1;
-    }
-
-    int Floor(int cur)
-    {
-        int f=log(cur+1)/log(2)+1;
-        return f;
-    }
-
     void Max_adjust_up(int cur)
     {
         while(cur>2)
         {
-            if(Dvec[cur].sNum <= Dvec[Parent(cur)].sNum)
+            if(Dvec[cur].sNum < Dvec[Parent(cur)].sNum)
                 break;
             else
                 swap(Dvec[cur],Dvec[Parent(cur)]);
@@ -694,7 +494,7 @@ public:
     {
         while(cur>2)
         {
-            if(Dvec[cur].sNum >= Dvec[Parent(cur)].sNum )
+            if(Dvec[cur].sNum > Dvec[Parent(cur)].sNum )
                 break;
             else
                 swap(Dvec[cur],Dvec[Parent(cur)]);
@@ -703,25 +503,9 @@ public:
 
     }///End Min_adjust_up
 
-    bool IsAtMax(int cur)
-    {
-        while( Parent(cur)!=0)
-        {
-            cur=Parent(cur);
-        }
-
-        if(cur == MaxRoot())
-        {
-            return true;
-        }
-        else
-            return false;
-
-    }///End IsAtMax
-
     bool IsAtMin(int cur)
     {
-         while( Parent(cur)!=0)
+        while( Parent(cur)!=0)
         {
             cur=Parent(cur);
         }
@@ -737,18 +521,18 @@ public:
 
     int corr_find(int cur) ///correspond node
     {
-        int floor = log(cur+1)/log(2)+1;
+        int floor = log2(cur+1)+1;
         int corr;
 
-        if(IsAtMax(cur))
+        if(!IsAtMin(cur))
         {
-             corr=cur-pow(2,floor-2);
+            corr=cur-pow(2,floor-2);
         }
 
         if(IsAtMin(cur))
         {
             corr=cur+pow(2,floor-2);
-            if(corr>Size()-1)
+            if(corr>Size(Dvec)-1)
                 corr=Parent(corr);
         }
 
@@ -758,92 +542,217 @@ public:
 
     void Heapify()
     {
-                        //cout<<"find= "<<corr_find(bottom())<<endl;
-        if(IsAtMax(bottom()) && bottom()>2)
+
+        if(!IsAtMin(bottom(Dvec)) && bottom(Dvec)>1)
         {
-            if(Dvec[bottom()].sNum < Dvec[corr_find(bottom())].sNum)
+            if(Dvec[bottom(Dvec)].sNum < Dvec[corr_find(bottom(Dvec))].sNum)
             {
-                 swap(Dvec[bottom()],Dvec[corr_find(bottom())]);
-                 Min_adjust_up(corr_find(bottom()));
+                swap(Dvec[bottom(Dvec)],Dvec[corr_find(bottom(Dvec))]);
+                Min_adjust_up(corr_find(bottom(Dvec)));
             }
 
             else
             {
-                Max_adjust_up(bottom());
+                Max_adjust_up(bottom(Dvec));
             }
 
         }
 
-        if(IsAtMin(bottom()) && bottom()>2)
+        if(IsAtMin(bottom(Dvec)) && bottom(Dvec)>1)
         {
-            if(Dvec[bottom()].sNum > Dvec[corr_find(bottom())].sNum)
+            if(Dvec[bottom(Dvec)].sNum > Dvec[corr_find(bottom(Dvec))].sNum)
             {
-                 swap(Dvec[bottom()],Dvec[corr_find(bottom())]);
-                 Max_adjust_up(corr_find(bottom()));
+                swap(Dvec[bottom(Dvec)],Dvec[corr_find(bottom(Dvec))]);
+                Max_adjust_up(corr_find(bottom(Dvec)));
             }
 
             else
             {
-                Min_adjust_up(bottom());
+                Min_adjust_up(bottom(Dvec));
             }
         }
 
     } ///End Heapify
 
-    int leftmost()
+    void Clear()
     {
-        int i=0;
-        while(((int)pow(2,i)) < Size()+1)
-        {
-            i++;
-        }
-        return (int)pow(2,i-1)-1;
-
+        Dvec.clear();
     }
 
     void ShowHeap()
     {
         int floor=1;
-        for(int i=1; i<Dvec.size(); i++)
+        /*for(int i=1; i<Dvec.size(); i++)
         {
             cout<<Dvec[i].sNum<<"\t";
             if(Floor(i+1) != Floor(i))
                 cout<<"\n";
-        }
-        cout<<"\n"<<Floor(5)<<endl;
-        cout<<"\n\nLeftmost index= "<<leftmost()<<endl;
-        cout<<"leftmost= "<< Dvec[leftmost()].sNum <<endl;
-        cout<<"bottom= "<< Dvec[bottom()].sNum <<endl;;
-
+        }*/
+        cout<<"\n <Deap> "<<endl;
+        cout<<"Data Size= "<<Size(Dvec)<<endl;
+        cout<<"bottom= "<<"["<<Dvec[bottom(Dvec)].Seq <<"] "<<Dvec[bottom(Dvec)].sNum <<endl;
+        cout<<"leftmost= "<< "[" << Dvec[leftmost(Dvec)].Seq <<"] "<< Dvec[leftmost(Dvec)].sNum <<endl;
+        Dvec.clear();
         cout<<endl;
     }
-};
 
-/*
-class binoHeap: public Heap{
+};///End Deap
+
+
+class binoHeap
+{
 private:
     vector<Node> Bvec;
 public:
 
 };
 
-class FiboHeap: public Heap{
+class FiboHeap
+{
 private:
     vector<Node> Fibo;
 public:
 
 
-};*/
+};
+
+void vecAssign(struct vector<Node> &V1, struct vector<Node> &V2)
+{
+    V1=V2;
+}
 
 int main()
 {
+    cout<<"@ Author: 電資三 10720138 陳尚宏 \n"<<endl;
+    int choice;
     string filename;
-    cin>>filename;
-    Deap D;
+
     MaxHeap Max;
-    D.readfile(filename);
-    D.ShowHeap();
-    Max.readfile(filename);
-    Max.ShowHeap();
-    return 0;
+    Deap D;
+    MMHeap M;
+    binoHeap bi;
+    FiboHeap fi;
+
+    while(1)
+    {
+        cout<<"**** Heap Construction *****\n"
+            <<"* 0. QUIT                  *\n"
+            <<"* 1. Build a max heap      *\n"
+            <<"* 2. Build a DEAP          *\n"
+            <<"* 3. Build a MinMaxHeap    *\n"
+            <<"*************************************\n"
+            <<"Input a choice(0, 1, 2, 3): ";
+        cin>>choice;
+        if(choice!=1 && choice!=2 && choice!=3 && choice!=0 )
+        {
+            cout<<"\nCommand does not exist!\n"<<endl;
+            continue;
+        }
+        else if(choice == 0)
+            exit(0);
+
+        cout<<"\nInput a file number ([0] Quit): ";
+        cin>>filename;
+        if(filename == "0")
+            exit(0);
+
+        clock_t Time1,Time2;
+
+        vector<Node> temp1;
+        double time[10],sum=0;
+        int i=0;
+        if(readfile(filename)==false)
+                continue;
+
+        switch(choice)
+        {
+        case 0:
+            return 0;
+
+        case 1:
+            vecAssign(temp1,temp);
+            while(i<10)
+            {
+                Time1=clock();
+                Max.MaxHeapify();
+                Time2=clock();
+                Max.Clear();
+                time[i] = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
+                vecAssign(temp,temp1);
+                cout<<"第"<<i<<"次"<<time[i]<<endl;
+                i++;
+            }
+
+            temp1.clear();
+            Max.MaxHeapify();
+            Max.ShowHeap();
+            for(int i=0; i<10; i++)
+            {
+                sum+=time[i];
+            }
+            sum=sum/10;
+            cout<<filename<<" average heapify time: "<<sum<<endl<<endl;
+            temp.clear();
+            break;
+
+        case 2:
+            vecAssign(temp1,temp);
+            while(i<10)
+            {
+                Time1=clock();
+                D.Deapify();
+                Time2=clock();
+                D.Clear();
+                time[i] = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
+                vecAssign(temp,temp1);
+                cout<<"第"<<i<<"次"<<time[i]<<endl;
+                i++;
+            }
+
+            temp1.clear();
+            D.Deapify();
+            D.ShowHeap();
+            for(int i=0; i<10; i++)
+            {
+                sum+=time[i];
+            }
+            sum=sum/10;
+            cout<<filename<<" average heapify time: "<<sum<<endl<<endl;
+            temp.clear();
+            break;
+
+        case 3:
+            vecAssign(temp1,temp);
+            while(i<10)
+            {
+                Time1=clock();
+                M.MMHeapify();
+                Time2=clock();
+                M.Clear();
+                time[i] = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
+                vecAssign(temp,temp1);
+                cout<<"第"<<i<<"次"<<time[i]<<endl;
+                i++;
+            }
+
+            temp1.clear();
+            M.MMHeapify();
+            M.ShowHeap();
+            for(int i=0; i<10; i++)
+            {
+                sum+=time[i];
+            }
+            sum=sum/10;
+            cout<<filename<<" average heapify time: "<<sum<<endl<<endl;
+            temp.clear();
+            break;
+
+        default:
+            cout<<"Command does not exist!\n";
+            break;
+
+        }///end switch
+
+    }///End while
+
 }
