@@ -253,7 +253,7 @@ public:
         }
     }
 
-    void MaxHeapify()
+    void access()
     {
         for(int i=0; i<temp.size(); i++)
         {
@@ -343,7 +343,7 @@ private:
     vector<Node> MMvec;
 public:
 
-    void MMHeapify()
+    void access()
     {
         for(int i=0; i<temp.size(); i++)
         {
@@ -452,13 +452,13 @@ private:
     vector<Node> Dvec;
 public:
 
-    void Deapify()
+    void access()
     {
         Dvec.push_back(Node());
         for(int i=0; i<temp.size(); i++)
         {
             Dvec.push_back(temp[i]);
-            Heapify();
+            Deapify();
         }
         temp.clear();
     }
@@ -540,7 +540,7 @@ public:
 
     }///End Min_corr_find
 
-    void Heapify()
+    void Deapify()
     {
 
         if(!IsAtMin(bottom(Dvec)) && bottom(Dvec)>1)
@@ -674,24 +674,24 @@ int main()
             while(i<10)
             {
                 Time1=clock();
-                Max.MaxHeapify();
+                Max.access();
                 Time2=clock();
                 Max.Clear();
                 time[i] = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
                 vecAssign(temp,temp1);
-                cout<<"第"<<i<<"次"<<time[i]<<endl;
+                cout<<"第"<<i+1<<"次 "<<time[i]<<endl;
                 i++;
             }
 
             temp1.clear();
-            Max.MaxHeapify();
+            Max.access();
             Max.ShowHeap();
             for(int i=0; i<10; i++)
             {
                 sum+=time[i];
             }
             sum=sum/10;
-            cout<<filename<<" average heapify time: "<<sum<<endl<<endl;
+            cout<<"Input"<<filename<<" average heapify time: "<<sum<<endl<<endl;
             temp.clear();
             break;
 
@@ -700,24 +700,24 @@ int main()
             while(i<10)
             {
                 Time1=clock();
-                D.Deapify();
+                D.access();
                 Time2=clock();
                 D.Clear();
                 time[i] = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
                 vecAssign(temp,temp1);
-                cout<<"第"<<i<<"次"<<time[i]<<endl;
+                cout<<"第"<<i+1<<"次 "<<time[i]<<endl;
                 i++;
             }
 
             temp1.clear();
-            D.Deapify();
+            D.access();
             D.ShowHeap();
             for(int i=0; i<10; i++)
             {
                 sum+=time[i];
             }
             sum=sum/10;
-            cout<<filename<<" average heapify time: "<<sum<<endl<<endl;
+            cout<<"Input"<<filename<<" average heapify time: "<<sum<<endl<<endl;
             temp.clear();
             break;
 
@@ -726,24 +726,24 @@ int main()
             while(i<10)
             {
                 Time1=clock();
-                M.MMHeapify();
+                M.access();
                 Time2=clock();
                 M.Clear();
                 time[i] = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
                 vecAssign(temp,temp1);
-                cout<<"第"<<i<<"次"<<time[i]<<endl;
+                cout<<"第"<<i+1<<"次 "<<time[i]<<endl;
                 i++;
             }
 
             temp1.clear();
-            M.MMHeapify();
+            M.access();
             M.ShowHeap();
             for(int i=0; i<10; i++)
             {
                 sum+=time[i];
             }
             sum=sum/10;
-            cout<<filename<<" average heapify time: "<<sum<<endl<<endl;
+            cout<<"Input"<<filename<<" average heapify time: "<<sum<<endl<<endl;
             temp.clear();
             break;
 
